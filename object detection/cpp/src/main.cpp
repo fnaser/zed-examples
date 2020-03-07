@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
     initParameters.coordinate_system = COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; // OpenGL's coordinate system is right_handed
     initParameters.sdk_verbose = true;
     initParameters.sensors_required = true;
+    initParameters.camera_fps = 30; // https://www.stereolabs.com/docs/video/camera-controls/#using-the-api
 
     parseArgs(argc, argv, initParameters);
 

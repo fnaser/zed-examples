@@ -49,8 +49,9 @@ int main(int argc, char **argv) {
 
     // Set configuration parameters for the ZED
     InitParameters initParameters;
-    initParameters.camera_resolution = RESOLUTION::HD2K;
+    initParameters.camera_resolution = RESOLUTION::HD720; // RESOLUTION::HD2K;
     initParameters.depth_mode = DEPTH_MODE::NONE;
+    initParameters.camera_fps = 30; // https://www.stereolabs.com/docs/video/camera-controls/#using-the-api
     parseArgs(argc,argv,initParameters);
 
 
