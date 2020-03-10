@@ -30,13 +30,16 @@
 // Flag to disable the GUI to increase detection performances
 // On low-end hardware such as Jetson Nano, the GUI significantly slows
 // down the detection and increase the memory consumption
-#define ENABLE_GUI 1
+#define ENABLE_GUI 0
+
+// Flag to disable recording with OpenCV
+#define ENABLE_REC 1
 
 // ZED includes
 #include <sl/Camera.hpp>
 
 // Sample includes
-#if ENABLE_GUI
+#if ENABLE_GUI || ENABLE_REC
 #include "GLViewer.hpp"
 #include "TrackingViewer.hpp"
 #endif
@@ -107,11 +110,11 @@ int main(int argc, char **argv) {
     Objects objects;
     bool quit = false;
 
-#if ENABLE_GUI
     Resolution display_resolution(1280, 720);
     Mat image_left(display_resolution, MAT_TYPE::U8_C4);
     sl::float2 img_scale(display_resolution.width / (float) camera_infos.camera_resolution.width, display_resolution.height / (float) camera_infos.camera_resolution.height);
 
+#if ENABLE_GUI
     // 2D tracks
     TrackingViewer track_view_generator;
     // With OpenGL coordinate system, Y is the vertical axis, and negative z values correspond to objects in front of the camera
@@ -140,6 +143,12 @@ int main(int argc, char **argv) {
     Pose cam_pose;
     cam_pose.pose_data.setIdentity();
     bool gl_viewer_available=true;
+
+#if ENABLE_REC
+    cv::VideoWriter video("./imgs/test.avi", cv::VideoWriter::fourcc('M','J','P','G'), 15, cv::Size(1280, 720)); // todo display_resolution
+    int counter = 0;
+#endif
+
     while (
 #if ENABLE_GUI
             gl_viewer_available &&
@@ -158,14 +167,27 @@ int main(int argc, char **argv) {
             zed.retrieveImage(image_left, VIEW::LEFT, MEM::CPU, display_resolution);
             render_2D(image_left, img_scale, objects.object_list, true);
             track_view_generator.generate_view(objects, cam_pose, track_view, objects.is_tracked);
-#else
+#elif !ENABLE_REC
             std::cout << "Detected " << objects.object_list.size() << " Object(s)" << std::endl;
+#endif
+
+#if ENABLE_REC
+            zed.retrieveImage(image_left, VIEW::LEFT, MEM::CPU, display_resolution);
+            render_2D(image_left, img_scale, objects.object_list, true);
 #endif
         }
 
         if (is_playback && zed.getSVOPosition() == zed.getSVONumberOfFrames()) {
             quit = true;
         }
+
+#if ENABLE_REC
+        cv::Mat img = slMat2cvMat(image_left);
+        cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
+        video.write(img);
+        std::cout << "added frame " + std::to_string(counter) << std::endl;
+        counter++;
+#endif
 
 #if ENABLE_GUI
         cv::Mat left_display = slMat2cvMat(image_left);
@@ -193,6 +215,11 @@ int main(int argc, char **argv) {
         
 #endif
     }
+
+#if ENABLE_REC
+    video.release();
+#endif
+
 #if ENABLE_GUI
     viewer.exit();
     point_cloud.free();
