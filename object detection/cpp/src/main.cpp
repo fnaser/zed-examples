@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
     bool gl_viewer_available=true;
 
 #if ENABLE_REC
-    cv::VideoWriter video("./imgs/test.avi", cv::VideoWriter::fourcc('M','J','P','G'), 15, cv::Size(1280, 720)); // todo display_resolution
+    cv::VideoWriter video("./imgs/test.avi", cv::VideoWriter::fourcc('M','J','P','G'), 30, cv::Size(1280, 720)); // todo display_resolution
     int counter = 0;
 #endif
 
@@ -167,13 +167,11 @@ int main(int argc, char **argv) {
             zed.retrieveImage(image_left, VIEW::LEFT, MEM::CPU, display_resolution);
             render_2D(image_left, img_scale, objects.object_list, true);
             track_view_generator.generate_view(objects, cam_pose, track_view, objects.is_tracked);
-#elif !ENABLE_REC
-            std::cout << "Detected " << objects.object_list.size() << " Object(s)" << std::endl;
-#endif
-
-#if ENABLE_REC
+#elif ENABLE_REC
             zed.retrieveImage(image_left, VIEW::LEFT, MEM::CPU, display_resolution);
             render_2D(image_left, img_scale, objects.object_list, true);
+#else
+            std::cout << "Detected " << objects.object_list.size() << " Object(s)" << std::endl;
 #endif
         }
 
