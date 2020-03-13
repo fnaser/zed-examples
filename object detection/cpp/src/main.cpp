@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
 
     Resolution display_resolution(1280, 720);
     Mat image_left(display_resolution, MAT_TYPE::U8_C4);
+    Mat image_depth(display_resolution, MAT_TYPE::U8_C4);
     sl::float2 img_scale(display_resolution.width / (float) camera_infos.camera_resolution.width, display_resolution.height / (float) camera_infos.camera_resolution.height);
 
 #if ENABLE_GUI
@@ -145,7 +146,8 @@ int main(int argc, char **argv) {
     bool gl_viewer_available=true;
 
 #if ENABLE_REC
-    cv::VideoWriter video("./imgs/test.avi", cv::VideoWriter::fourcc('M','J','P','G'), 30, cv::Size(1280, 720)); // todo display_resolution
+    cv::VideoWriter video_left("./imgs/test-left.avi", cv::VideoWriter::fourcc('M','J','P','G'), 30, cv::Size(1280, 720)); // todo display_resolution
+    cv::VideoWriter video_depth("./imgs/test-depth.avi", cv::VideoWriter::fourcc('M','J','P','G'), 30, cv::Size(1280, 720)); // todo display_resolution
     int counter = 0;
 #endif
 
@@ -154,6 +156,7 @@ int main(int argc, char **argv) {
             gl_viewer_available &&
 #endif
             !quit && zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
+
         detection_parameters_rt.detection_confidence_threshold = detection_confidence;
         zed_error = zed.retrieveObjects(objects, detection_parameters_rt);
 
@@ -167,25 +170,34 @@ int main(int argc, char **argv) {
             zed.retrieveImage(image_left, VIEW::LEFT, MEM::CPU, display_resolution);
             render_2D(image_left, img_scale, objects.object_list, true);
             track_view_generator.generate_view(objects, cam_pose, track_view, objects.is_tracked);
-#elif ENABLE_REC
-            zed.retrieveImage(image_left, VIEW::LEFT, MEM::CPU, display_resolution);
-            render_2D(image_left, img_scale, objects.object_list, true);
 #else
             std::cout << "Detected " << objects.object_list.size() << " Object(s)" << std::endl;
 #endif
         }
 
-        if (is_playback && zed.getSVOPosition() == zed.getSVONumberOfFrames()) {
-            quit = true;
-        }
-
 #if ENABLE_REC
+        zed.retrieveImage(image_left, VIEW::LEFT, MEM::CPU, display_resolution);
+        render_2D(image_left, img_scale, objects.object_list, true);
         cv::Mat img = slMat2cvMat(image_left);
-        cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
-        video.write(img);
+
+        cv::imwrite("./imgs/image_left" + std::to_string(counter) + ".jpg", img);
+        // cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
+        // video_left.write(img);
+
+        zed.retrieveImage(image_depth, VIEW::DEPTH, MEM::CPU, display_resolution);
+        img = slMat2cvMat(image_depth);
+
+        // cv::imwrite("./imgs/image_depth" + std::to_string(counter) + ".jpg", img);
+        // cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
+        // video_depth.write(img);
+
         std::cout << "added frame " + std::to_string(counter) << std::endl;
         counter++;
 #endif
+
+        if (is_playback && zed.getSVOPosition() == zed.getSVONumberOfFrames()) {
+            quit = true;
+        }
 
 #if ENABLE_GUI
         cv::Mat left_display = slMat2cvMat(image_left);
@@ -215,7 +227,8 @@ int main(int argc, char **argv) {
     }
 
 #if ENABLE_REC
-    video.release();
+    video_left.release();
+    video_depth.release();
 #endif
 
 #if ENABLE_GUI
@@ -223,6 +236,7 @@ int main(int argc, char **argv) {
     point_cloud.free();
     image_left.free();
 #endif
+
     zed.disableObjectDetection();
     zed.close();
     return 0;
