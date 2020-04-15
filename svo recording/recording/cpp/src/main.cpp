@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     InitParameters initParameters;
     initParameters.camera_resolution = RESOLUTION::HD720; // RESOLUTION::HD2K;
     initParameters.depth_mode = DEPTH_MODE::ULTRA; // NONE
-    // initParameters.coordinate_units = UNIT::METER;
+    initParameters.coordinate_units = UNIT::METER;
     initParameters.depth_maximum_distance = 30; // max is 40m
     initParameters.camera_fps = 30; // https://www.stereolabs.com/docs/video/camera-controls/#using-the-api
     parseArgs(argc,argv,initParameters);
