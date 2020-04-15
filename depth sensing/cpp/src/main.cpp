@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
     InitParameters initParameters;
     initParameters.depth_mode = DEPTH_MODE::ULTRA;
     initParameters.coordinate_system = COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; // OpenGL's coordinate system is right_handed
+    initParameters.camera_fps = 30; // https://www.stereolabs.com/docs/video/camera-controls/#using-the-api
     parseArgs(argc,argv,initParameters);
 
     // Open the camera

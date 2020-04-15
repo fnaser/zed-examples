@@ -50,7 +50,9 @@ int main(int argc, char **argv) {
     // Set configuration parameters for the ZED
     InitParameters initParameters;
     initParameters.camera_resolution = RESOLUTION::HD720; // RESOLUTION::HD2K;
-    initParameters.depth_mode = DEPTH_MODE::NONE;
+    initParameters.depth_mode = DEPTH_MODE::ULTRA; // NONE
+    // initParameters.coordinate_units = UNIT::METER;
+    initParameters.depth_maximum_distance = 30; // max is 40m
     initParameters.camera_fps = 30; // https://www.stereolabs.com/docs/video/camera-controls/#using-the-api
     parseArgs(argc,argv,initParameters);
 
@@ -62,6 +64,10 @@ int main(int argc, char **argv) {
         zed.close();
         return 1; // Quit if an error occurred
     }
+
+    // https://www.stereolabs.com/docs/depth-sensing/depth-settings/
+    // Set the maximum depth perception distance
+    // zed.setDepthMaxRangeValue(30);
 
     // Enable recording with the filename specified in argument
     String path_output(argv[1]);
